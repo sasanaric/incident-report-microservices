@@ -1,0 +1,5 @@
+Django==3.2.9
+djangorestframework==3.12.4
+django-cors-headers==3.10.0
+deep-translator==1.11.4
+langdetect==1.0.9

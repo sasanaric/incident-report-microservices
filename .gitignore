@@ -1,0 +1,34 @@
+# Byte-compiled / optimized / DLL files
+*/__pycache__/
+*/*.pyc
+*/*.pyo
+*/*.pyd
+
+# Django
+*.log
+*.pot
+*.pyc
+__pycache__/
+local_settings.py
+db.sqlite3
+
+# Virtual environment
+*/venv/
+*/env/
+
+# IDE (e.g., PyCharm)
+.idea/
+
+# Dependency directories
+*/node_modules/
+*.env
+
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+
+# Additional Django-specific exclusions
+*/media/
+*/static/

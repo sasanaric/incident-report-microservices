@@ -1,0 +1,47 @@
+version: "3"
+
+services:
+  web:
+    build: .
+    command: "python manage.py runserver 0.0.0.0:8000"
+    ports:
+      - "8001:8000"
+    depends_on:
+      - db
+    environment:
+      - DJANGO_DB_HOST=db
+    volumes:
+      - .:/app
+    networks:
+      - project_incident_network
+
+  db:
+    image: "postgres:latest"
+    environment:
+      POSTGRES_DB: incidents_database
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5001:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - project_incident_network
+
+  # rabbitmq:
+  #   image: "rabbitmq:management"
+  #   environment:
+  #     RABBITMQ_DEFAULT_USER: guest
+  #     RABBITMQ_DEFAULT_PASS: guest
+  #   ports:
+  #     - "5672:5672"
+  #     - "15672:15672"
+  #   networks:
+  #     - project_incident_network
+
+volumes:
+  pgdata:
+
+networks:
+  project_incident_network:
+    driver: bridge

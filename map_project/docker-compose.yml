@@ -1,0 +1,36 @@
+version: "1"
+
+services:
+  web:
+    build: .
+    command: "python manage.py runserver 0.0.0.0:8000"
+    ports:
+      - "8002:8000"
+    depends_on:
+      - db
+    environment:
+      - DJANGO_DB_HOST=db
+    volumes:
+      - .:/app
+    networks:
+      - project_map
+
+  db:
+    image: "postgis/postgis:latest"
+    environment:
+      POSTGRES_DB: map_database
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5002:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - project_map
+
+volumes:
+  pgdata:
+
+networks:
+  project_map:
+    driver: bridge

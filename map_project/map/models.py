@@ -25,4 +25,13 @@ class Location(SoftDeleteObject, models.Model):
     coordinates = models.PointField()
 
     def __str__(self):
-        return self.id
+        return f"Location {self.id}"
+
+class ClusteredIncidentsView(models.Model):
+    id = models.BigAutoField(primary_key=True)
+    incident_location = models.CharField(max_length=255)
+    cluster_size = models.IntegerField()
+
+    class Meta:
+        managed = False
+        db_table = 'clustered_incidents_view'

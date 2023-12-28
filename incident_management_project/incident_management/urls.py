@@ -12,5 +12,6 @@ urlpatterns = [
     path('types/',AllTypesList.as_view(),name='type-list'),
     path('types/<int:pk>/',TypeDetail.as_view(),name='type-detail'),
     path('rmq/',send_message_to_rabbitmq, name='test-rmq'),
-    path('incidents/filter/',IncidentListFilter.as_view(),name='incident-filter')
+    path('incidents/filter/',IncidentListFilter.as_view(),name='incident-filter'),
+    path('incidents/nlp/',GroupedIncidentsView.as_view(),name='incident-nlp')
 ]

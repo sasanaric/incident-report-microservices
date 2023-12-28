@@ -49,3 +49,13 @@ def approveIncident(request):
     incident.approved = True
     incident.save()
     return Response({"message": "Incident status updated."})
+
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
+def deleteIncident(request, id, *args, **kwargs):
+    try:
+        incident = Incident.objects.get(id=id)
+        incident.delete()
+        return Response({"message": "Incident deleted."})
+    except Incident.DoesNotExist:
+        raise Http404("Incident does not exist")

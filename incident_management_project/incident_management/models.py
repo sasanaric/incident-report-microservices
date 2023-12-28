@@ -1,5 +1,7 @@
 from django.db import models
-
+import spacy
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.cluster import KMeans
 # Create your models here.
 
 class SoftDeleteManager(models.Manager):
@@ -38,6 +40,8 @@ class Incident(SoftDeleteObject,models.Model):
     image_url = models.URLField(blank=True, null=True)
     approved = models.BooleanField(default=False)
     time = models.DateTimeField(auto_now_add=True, null=True)
+    cluster_label = models.IntegerField(null=True, blank=True)
+
 
     def __str__(self):
         return f"Incident #{self.id}: {self.type}"

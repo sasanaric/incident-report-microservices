@@ -1,16 +1,17 @@
 from django.http import HttpResponse, JsonResponse
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import generics
-from rest_framework import status
+from rest_framework import generics,status
 import json
 from incident_management.rabbitmq import RabbitMQSender
 from .models import *
 from .serializers import *
 from django_filters.rest_framework import DjangoFilterBackend
-from datetime import timedelta
+from datetime import timedelta, datetime
 from django.utils import timezone
-from django.db.models import Q
+from django.db.models import Q,Count, Func
+from django.db.models.functions import Coalesce,TruncMonth,TruncDay
+
 
 
 def send_message_to_rabbitmq(request,body):
@@ -98,29 +99,22 @@ class IncidentListFilter(generics.ListAPIView):
 
 class GroupedIncidentsView(APIView):
     def get(self, request, *args, **kwargs):
-        # Retrieve all incidents
         incidents = Incident.objects.all()
 
-        # Extract incident descriptions
         descriptions = [incident.description for incident in incidents]
 
-        # Add error checking for None values in descriptions
         descriptions = [desc.lower() if desc else '' for desc in descriptions]
 
-        # Vectorize the descriptions using TF-IDF
         vectorizer = TfidfVectorizer(stop_words='english')
         X = vectorizer.fit_transform(descriptions)
 
-        # Apply KMeans clustering
-        kmeans = KMeans(n_clusters=5)  # Adjust the number of clusters as needed
+        kmeans = KMeans(n_clusters=8)  
         clusters = kmeans.fit_predict(X)
 
-        # Add cluster labels to incidents
         for incident, cluster in zip(incidents, clusters):
             incident.cluster_label = cluster
             incident.save()
 
-        # Group incidents by cluster
         grouped_incidents = {}
         for incident in incidents:
             cluster = int(incident.cluster_label)
@@ -130,3 +124,52 @@ class GroupedIncidentsView(APIView):
             grouped_incidents[cluster]['incidents'].append(serializer.data)
 
         return JsonResponse(list(grouped_incidents.values()), safe=False)
+
+class IncidentAnalysisTypesView(generics.ListAPIView):
+    serializer_class = IncidentAnalysisTypesSerializer
+
+    def get(self, request, *args, **kwargs):
+        queryset = (
+            Incident.objects
+            .annotate(
+                group_type_id=Coalesce('type__parent', 'type__id', output_field=models.IntegerField()),
+            )
+            .values('group_type_id')
+            .annotate(total=Count('group_type_id'))
+        )
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+
+
+class IncidentAnalysisMonthsView(generics.ListAPIView):
+    serializer_class = IncidentAnalysisMonthsSerializer
+
+    def get(self, request, *args, **kwargs):
+        twelve_months_ago = datetime.now() - timedelta(days=365)
+
+        queryset = (
+            Incident.objects
+            .filter(time__gte=twelve_months_ago)
+            .values(month=TruncMonth('time'))
+            .order_by('month')
+            .reverse()
+            .annotate(total=Count('id'))
+        )
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+class IncidentAnalysisDaysView(generics.ListAPIView):
+    serializer_class = IncidentAnalysisDaysSerializer
+
+    def get(self, request, *args, **kwargs):
+        seven_days_ago = datetime.now() - timedelta(days=7)
+
+        queryset = (
+            Incident.objects
+            .filter(time__gte=seven_days_ago)
+            .values(day=TruncDay('time'))
+            .annotate(total=Count('id'))
+        )
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+
+

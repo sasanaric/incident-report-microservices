@@ -7,6 +7,7 @@ from ..models import Incident
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.views import TokenObtainPairView
 
+
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
     @classmethod
     def get_token(cls, user):
@@ -59,3 +60,5 @@ def deleteIncident(request, id, *args, **kwargs):
         return Response({"message": "Incident deleted."})
     except Incident.DoesNotExist:
         raise Http404("Incident does not exist")
+    
+
